@@ -87,7 +87,7 @@ struct VblankCond {
 
 /// Wraps an `NSView` object.
 #[derive(Clone)]
-pub struct NSView(pub(crate) id);
+pub struct NSView(pub id);
 
 /// A native widget on macOS (`NSView`).
 #[derive(Clone)]
