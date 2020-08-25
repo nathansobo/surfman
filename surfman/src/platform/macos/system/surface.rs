@@ -33,14 +33,14 @@ const BYTES_PER_PIXEL: i32 = 4;
 
 /// Represents a hardware buffer of pixels that can be rendered to via the CPU or GPU and either
 /// displayed in a native widget or bound to a texture for reading.
-/// 
+///
 /// Surfaces come in two varieties: generic and widget surfaces. Generic surfaces can be bound to a
 /// texture but cannot be displayed in a widget (without using other APIs such as Core Animation,
 /// DirectComposition, or XPRESENT). Widget surfaces are the opposite: they can be displayed in a
 /// widget but not bound to a texture.
-/// 
+///
 /// Depending on the platform, each surface may be internally double-buffered.
-/// 
+///
 /// Surfaces must be destroyed with the `destroy_surface()` method, or a panic will occur.
 pub struct Surface {
     pub(crate) io_surface: IOSurface,
@@ -212,7 +212,7 @@ impl Device {
     }
 
     /// Destroys a surface.
-    /// 
+    ///
     /// You must explicitly call this method to dispose of a surface. Otherwise, a panic occurs in
     /// the `drop` method.
     pub fn destroy_surface(&self, surface: &mut Surface) -> Result<(), Error> {
@@ -221,7 +221,7 @@ impl Device {
     }
 
     /// Displays the contents of a widget surface on screen.
-    /// 
+    ///
     /// Widget surfaces are internally double-buffered, so changes to them don't show up in their
     /// associated widgets until this method is called.
     pub fn present_surface(&self, surface: &mut Surface) -> Result<(), Error> {
@@ -229,7 +229,13 @@ impl Device {
     }
 
     /// Resizes a widget surface
-    pub fn resize_surface(&self, surface: &mut Surface, size: Size2D<i32>) -> Result<(), Error> {
+    pub fn resize_surface(&self, surface: &mut Surface, mut size: Size2D<i32>) -> Result<(), Error> {
+        // The surface will not appear if its width is not a multiple of 4 (i.e. stride
+        // is a multiple of 16 bytes). Enforce this.
+        if size.width % 4 != 0 {
+            size.width += 4 - size.width % 4;
+        }
+
         let view_info = match surface.view_info {
             None => return Err(Error::NoWidgetAttached),
             Some(ref mut view_info) => view_info,
